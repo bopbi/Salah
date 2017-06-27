@@ -8,13 +8,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener2
 import android.hardware.SensorManager
-import android.hardware.SensorManager.getRotationMatrix
-import android.R.attr.orientation
-
-
-
-
-
+import java.util.*
 
 
 /**
@@ -29,10 +23,12 @@ class QiblaSensorManager(val currentLat: Double, val currentLng: Double, lifecyc
     private val mRotationMatrix = FloatArray(9)
     private val mOrientationAngles = FloatArray(3)
 
-    private val DEGREE_THRESHOULD = 1.6F
+    private val DEGREE_THRESHOLD = 5.0F
     private var realDegree = 0F
     var magnetometerSet = false
     var accelerometerSet = false
+    var date1 : Date? = null
+    var date2 : Date? = null
 
     private val KABA_LAT = 21.422487
     private val KABA_LNG = 39.826206
@@ -41,6 +37,7 @@ class QiblaSensorManager(val currentLat: Double, val currentLng: Double, lifecyc
 
     init {
         lifecycleRegistry.addObserver(this)
+        date1 = Date()
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
@@ -92,18 +89,23 @@ class QiblaSensorManager(val currentLat: Double, val currentLng: Double, lifecyc
 
         var letsRotate = false
         if (realDegree > degreeAzimuth) {
-            if ((realDegree - degreeAzimuth) > DEGREE_THRESHOULD) {
+            if ((realDegree - degreeAzimuth) > DEGREE_THRESHOLD) {
                 letsRotate = true
             }
         } else {
-            if ((degreeAzimuth - realDegree) > DEGREE_THRESHOULD) {
+            if ((degreeAzimuth - realDegree) > DEGREE_THRESHOLD) {
                 letsRotate = true
             }
         }
 
         if (letsRotate) {
-            qiblaCompassView.rotateCompass(realDegree, -kabaaAzimuth.toFloat())
-            realDegree = -kabaaAzimuth.toFloat()
+            date2 = Date()
+            val secondsBetween = (date2?.time as Long - date1?.time as Long) // keep use miliscond
+            if (secondsBetween > 600) {
+                qiblaCompassView.rotateCompass(realDegree, -kabaaAzimuth.toFloat())
+                realDegree = -kabaaAzimuth.toFloat()
+                date1 = date2
+            }
         }
     }
 

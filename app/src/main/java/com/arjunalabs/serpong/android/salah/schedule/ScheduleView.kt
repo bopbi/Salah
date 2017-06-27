@@ -74,6 +74,8 @@ class ScheduleView : CoordinatorLayout, ScheduleContract.View {
         override fun onCreateViewHolder(parent: ViewGroup?, p1: Int): ScheduleViewHolder {
 
             val view = LayoutInflater.from(parent?.context).inflate(R.layout.row_schedule, null, false)
+            val lp = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            view.layoutParams = lp
             return ScheduleViewHolder(view)
         }
 

@@ -15,12 +15,13 @@ import android.util.Log
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import java.util.*
-
-
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 
 
 class ScheduleActivity : AppCompatActivity() {
 
+    val PLAY_SERVICES_RESOLUTION_REQUEST = 9000
     var fusedLocationClient : FusedLocationProviderClient? = null
     var presenter : ScheduleContract.Presenter? = null
     val REQUEST_LOCATION_PERMISSION_CODE = 1
@@ -52,10 +53,15 @@ class ScheduleActivity : AppCompatActivity() {
                     REQUEST_LOCATION_PERMISSION_CODE);
         } else {
 
-            if (viewModel?.lat == null || viewModel?.lng == null) {
-                getLastLocation()
+            if (!checkPlayServices()) {
+
             } else {
-                calculateSchedule()
+
+                if (viewModel?.lat == null || viewModel?.lng == null) {
+                    getLastLocation()
+                } else {
+                    calculateSchedule()
+                }
             }
         }
         presenter = SchedulePresenter()
@@ -123,5 +129,21 @@ class ScheduleActivity : AppCompatActivity() {
         val prayerNames = prayers.timeNames
 
         scheduleView?.displaySchedule(prayerNames, prayerTimes)
+    }
+
+    fun checkPlayServices(): Boolean {
+        val apiAvailability = GoogleApiAvailability.getInstance()
+        val resultCode = apiAvailability.isGooglePlayServicesAvailable(this)
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (apiAvailability.isUserResolvableError(resultCode)) {
+                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
+                        .show()
+            } else {
+                Log.i("Salaah", "This device is not supported.")
+                finish()
+            }
+            return false
+        }
+        return true
     }
 }

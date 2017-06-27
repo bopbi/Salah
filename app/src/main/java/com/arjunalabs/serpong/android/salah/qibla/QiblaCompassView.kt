@@ -6,9 +6,6 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.RotateAnimation
-import android.view.ViewGroup
-
-
 
 /**
  * Created by bobbyadiprabowo on 5/28/17.
@@ -22,6 +19,7 @@ class QiblaCompassView : View {
     private val arrowColor = Color.RED
     private val circleColor = Color.BLUE
     private val bgColor = Color.TRANSPARENT
+    var animationRun = false;
 
     constructor(context: Context?) : super(context) {
         initialize()
@@ -61,7 +59,7 @@ class QiblaCompassView : View {
     fun drawCircle(canvas: Canvas?) {
         paint.color = circleColor
         paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 8F
+        paint.strokeWidth = 32F
         canvas?.drawCircle(center,center,center - (paint.strokeWidth / 2),paint)
     }
 
@@ -71,19 +69,40 @@ class QiblaCompassView : View {
         paint.strokeWidth = 0F
 
         path.moveTo(center, 0F)
-        path.lineTo(center + 32F, center)
-        path.lineTo(center - 32F, center)
+        path.lineTo(center + 72F, center)
+        path.lineTo(center - 72F, center)
         path.lineTo(center, 0F)
 
         canvas?.drawPath(path, paint)
     }
 
     fun rotateCompass(from : Float, to: Float) {
+
+        if (animationRun) {
+            return
+        }
+
         val anim = RotateAnimation(from, to,
                 Animation.RELATIVE_TO_SELF, 0.5F, Animation.RELATIVE_TO_SELF, 0.5F)
-        anim.duration = 500
+        val diff = Math.abs(from-to)
+
+        anim.duration = ((diff / 90) * 250).toLong()
         anim.fillAfter = true
-        anim.setInterpolator(context, android.R.anim.decelerate_interpolator)
+        anim.setInterpolator(context, android.R.anim.accelerate_decelerate_interpolator)
+
+        anim.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationRepeat(animation: Animation?) {
+            }
+
+            override fun onAnimationEnd(animation: Animation?) {
+                animationRun = false
+            }
+
+            override fun onAnimationStart(animation: Animation?) {
+                animationRun = true
+            }
+
+        })
         startAnimation(anim)
     }
 }
